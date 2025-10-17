@@ -14,6 +14,7 @@ from matplotlib.figure import Figure
 import datetime
 import re
 from matplotlib import gridspec
+from pathlib import Path
 import os
 import sys
 import subprocess
@@ -378,6 +379,9 @@ class App(ttk.Window):
 
     def abrir_analise_quantitativa(self):
         """Abre a análise quantitativa (qualitativo.py) em um novo processo."""
+        script_path = Path(__file__).with_name("qualitativo.py")
+
+        if not script_path.exists():
         script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "qualitativo.py")
 
         if not os.path.exists(script_path):
@@ -389,6 +393,7 @@ class App(ttk.Window):
             return
 
         try:
+            subprocess.Popen([sys.executable, str(script_path)])
             subprocess.Popen([sys.executable, script_path])
         except Exception as exc:
             self.show_message(
@@ -396,6 +401,7 @@ class App(ttk.Window):
                 f"Não foi possível iniciar a análise quantitativa.\n\n{exc}",
                 type="error",
             )
+            
 
     def criar_card(self, parent_frame, titulo, valor_var, icone):
         """Cria um card de métricas."""
