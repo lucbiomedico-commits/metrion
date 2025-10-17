@@ -10,10 +10,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.dates as mdates 
 import numpy as np
 import random
-from matplotlib.figure import Figure 
+from matplotlib.figure import Figure
 import datetime
-import re 
-from matplotlib import gridspec 
+import re
+from matplotlib import gridspec
+from pathlib import Path
+import sys
+import subprocess
 try:
     import mplcursors 
 except ImportError:
@@ -367,11 +370,32 @@ class App(ttk.Window):
     def show_message(self, title, message, type="info"):
         """Exibe uma messagebox customizada."""
         if type == "error":
-            tk.messagebox.showerror(title, message, icon='warning') 
+            tk.messagebox.showerror(title, message, icon='warning')
         elif type == "warning":
             tk.messagebox.showwarning(title, message, icon='warning')
         else:
             tk.messagebox.showinfo(title, message, icon='info')
+
+    def abrir_analise_quantitativa(self):
+        """Abre a análise quantitativa (qualitativo.py) em um novo processo."""
+        script_path = Path(__file__).with_name("qualitativo.py")
+
+        if not script_path.exists():
+            self.show_message(
+                "Arquivo não encontrado",
+                "Não foi possível localizar o arquivo 'qualitativo.py'.",
+                type="error",
+            )
+            return
+
+        try:
+            subprocess.Popen([sys.executable, str(script_path)])
+        except Exception as exc:
+            self.show_message(
+                "Erro ao abrir análise",
+                f"Não foi possível iniciar a análise quantitativa.\n\n{exc}",
+                type="error",
+            )
             
     def criar_card(self, parent_frame, titulo, valor_var, icone):
         """Cria um card de métricas."""
@@ -449,8 +473,14 @@ class App(ttk.Window):
         
         action_frame = ttk.Frame(header_frame)
         action_frame.pack(side=RIGHT)
-        
+
         # REMOVIDO: ttk.Button(action_frame, text="Iniciar Análise", command=self.analisar_dados, bootstyle=SUCCESS).pack(side=RIGHT, padx=5)
+        ttk.Button(
+            action_frame,
+            text="Análise Quantitativa",
+            command=self.abrir_analise_quantitativa,
+            bootstyle=SUCCESS,
+        ).pack(side=RIGHT, padx=5)
         ttk.Button(action_frame, text="Gerenciar Valores de Referência (VR)", command=self.abrir_manager_vr, bootstyle=INFO).pack(side=RIGHT, padx=5)
         
 
