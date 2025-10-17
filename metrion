@@ -451,9 +451,28 @@ class App(ttk.Window):
         header_frame = ttk.Frame(main_dashboard_frame, padding="15 20")
         header_frame.pack(fill=X, pady=(0, 20))
         header_frame.columnconfigure(0, weight=1)
+        header_frame.columnconfigure(1, weight=0)
 
-        ttk.Label(header_frame, text="Metrion", font=("Helvetica Neue", 28, "bold"), bootstyle=PRIMARY).grid(row=0, column=0, pady=(0, 5))
-        ttk.Label(header_frame, text="Sistema de Análise estatística", font=("Helvetica Neue", 14), bootstyle=SECONDARY).grid(row=1, column=0)
+        title_container = ttk.Frame(header_frame)
+        title_container.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(0, 10))
+        title_container.columnconfigure(0, weight=1)
+
+        ttk.Label(
+            title_container,
+            text="Metrion",
+            font=("Helvetica Neue", 28, "bold"),
+            bootstyle=PRIMARY,
+            anchor=CENTER,
+            justify=CENTER,
+        ).pack(fill=X, pady=(0, 5))
+        ttk.Label(
+            title_container,
+            text="Sistema de Análise estatística",
+            font=("Helvetica Neue", 14),
+            bootstyle=SECONDARY,
+            anchor=CENTER,
+            justify=CENTER,
+        ).pack(fill=X)
 
         action_frame = ttk.Frame(header_frame)
         action_frame.grid(row=0, column=1, rowspan=2, sticky=E)
