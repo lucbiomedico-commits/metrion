@@ -321,8 +321,7 @@ class App(ttk.Window):
     def __init__(self):
         super().__init__(themename="flatly") 
 
-        # MODIFICAÇÃO SOLICITADA: Nome da aplicação na barra de título
-        self.title("Metrion - Sistema de Análise Estatística")
+        self.title("Sistema de Análise Estatística - Dashboard")
         self.geometry("1400x900") 
         self.minsize(1200, 750) 
 
@@ -446,28 +445,7 @@ class App(ttk.Window):
         header_frame = ttk.Frame(main_dashboard_frame, padding="15 10", bootstyle=LIGHT)
         header_frame.pack(fill=X, pady=(0, 20))
         
-        # O código original (ttk.Label(header_frame, text="Sistema de Análise Estatística", ...)) foi removido
-        
-        # MODIFICAÇÃO SOLICITADA: Título "Metrion" (Azul) e Subtítulo (Cinza), ambos centralizados
-        
-        # Configuração dos Styles customizados para cor e alinhamento
-        # Título: Azul, Centralizado, Sem Preenchimento (fundo do frame)
-        # O self.style.lookup('TFrame', 'background') garante que o background seja o mesmo do frame, simulando "sem preenchimento"
-        self.style.configure('MetrionTitle.TLabel', foreground='#0077b6', background=self.style.lookup('TFrame', 'background'), font=("Helvetica Neue", 36, "bold"))
-        # Subtítulo: Cinza, Centralizado, Sem Preenchimento (fundo do frame)
-        self.style.configure('MetrionSubtitle.TLabel', foreground='gray', background=self.style.lookup('TFrame', 'background'), font=("Helvetica Neue", 16))
-        
-        # Frame Container para centralizar o título, ocupando todo o espaço restante à esquerda do action_frame
-        title_container = ttk.Frame(header_frame, bootstyle=LIGHT)
-        title_container.pack(side=LEFT, fill=X, expand=True) 
-
-        # Título Principal: Metrion
-        ttk.Label(title_container, text="Metrion", style='MetrionTitle.TLabel').pack(anchor=CENTER)
-
-        # Subtítulo: Sistema de Análise Estatística
-        ttk.Label(title_container, text="Sistema de Análise Estatística", style='MetrionSubtitle.TLabel').pack(anchor=CENTER)
-        
-        # FIM DA MODIFICAÇÃO
+        ttk.Label(header_frame, text="Sistema de Análise Estatística", font=("Helvetica Neue", 22, "bold"), bootstyle=PRIMARY).pack(side=LEFT)
         
         action_frame = ttk.Frame(header_frame)
         action_frame.pack(side=RIGHT)
@@ -739,16 +717,11 @@ class App(ttk.Window):
         regras_a_usar = regras_sexo if regras_sexo else regras_ambos
         
         if not regras_a_usar:
-            return 'SEM VR'
+            return 'SEM VR' 
 
-        # Se houver mais de uma regra aplicável (ex: uma de "AMBOS" e uma de "MASCULINO"), 
-        # a classificação usa os limites mais abrangentes entre as regras mais específicas (sexo) ou genéricas (ambos).
-        # Neste caso, para simplificar e garantir a detecção de anormalidade, 
-        # usaremos o menor ref_min e o maior ref_max de todas as regras aplicáveis.
-        
         ref_min = min(r['ref_min'] for r in regras_a_usar)
         ref_max = max(r['ref_max'] for r in regras_a_usar)
-
+        
         if ref_min <= resultado <= ref_max:
             return 'NORMAL'
         elif resultado < ref_min:
@@ -763,11 +736,10 @@ class App(ttk.Window):
                 return
             self.show_message("Aviso", "Nenhum arquivo de dados carregado.", type="warning")
             return
-            
+
         df_temp = self.df.copy()
 
         # 1. Pré-processamento e Limpeza
-        
         if 'data' in df_temp.columns:
             try:
                 # CORRIGIDO: Tentativa primária usando o formato brasileiro DD/MM/AAAA
@@ -784,10 +756,10 @@ class App(ttk.Window):
         if 'resultado' in df_temp.columns:
             df_temp['resultado'] = df_temp['resultado'].astype(str).str.replace(',', '.', regex=False)
             df_temp['resultado'] = pd.to_numeric(df_temp['resultado'], errors='coerce')
-        
+
         if 'sexo' in df_temp.columns:
             df_temp['sexo'] = df_temp['sexo'].astype(str).str.upper().str.strip().str[0].replace({'M': 'MASCULINO', 'F': 'FEMININO'})
-
+            
         df_temp.dropna(subset=['exame', 'resultado'], inplace=True)
         
         self.exames_disponiveis = sorted(df_temp['exame'].unique().tolist())
@@ -804,22 +776,21 @@ class App(ttk.Window):
             
         # Atualização do display do filtro de idade
         min_disp = _formatar_idade_para_exibicao(self.idade_min_filtro) if self.idade_min_filtro is not None else "0"
-        
         if self.idade_max_filtro is not None:
             max_disp = _formatar_idade_para_exibicao(self.idade_max_filtro)
         elif self.idade_max_filtro_var.get() == "" and self.idade_min_filtro is not None:
-             max_disp = "MAX"
+            max_disp = "MAX"
         else:
-             max_disp = "MAX"
-             
+            max_disp = "MAX"
+
         if self.idade_min_filtro is not None or self.idade_max_filtro is not None:
             self.faixa_idade_display.set(f"Faixa Etária: {min_disp} a {max_disp}")
         else:
             self.faixa_idade_display.set("Faixa Etária: Completa")
-            
+
         # --- 2.2. Filtro de Período ---
         periodo = self.periodo_ativo.get()
-        if 'Custom:' in periodo:
+        if 'Custom:' in periodo: 
             # Período customizado
             data_inicio_filtro = self.data_inicio
             data_fim_filtro = self.data_fim
@@ -835,11 +806,11 @@ class App(ttk.Window):
         self.periodo_display.set(periodo_display)
 
         if self.data_inicio and self.data_fim and 'data' in df_temp.columns:
-            df_temp = df_temp[
+            df_temp = df_temp[ 
                 (df_temp['data'] >= self.data_inicio) & 
-                (df_temp['data'] <= self.data_fim)
+                (df_temp['data'] <= self.data_fim) 
             ]
-        
+            
         self.df_analise = df_temp.copy()
 
         # 3. Classificação VR
@@ -860,11 +831,13 @@ class App(ttk.Window):
 
         # Atualiza os cards (necessário aqui também, pois a seleção do exame os afeta)
         if self.df_analise is not None:
-             self.atualizar_cards_metricas(self.df_analise)
+            self.atualizar_cards_metricas(self.df_analise)
 
         if self.df_analise is None or self.df_analise.empty or exame == "Selecione o Exame":
             self._setup_plot_area(single_plot=True)
-            self.ax.text(0.5, 0.5, 'Nenhum dado ou exame selecionado para plotagem.', horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes, fontsize=14, color='gray')
+            self.ax.text(0.5, 0.5, 'Nenhum dado ou exame selecionado para plotagem.', 
+                         horizontalalignment='center', verticalalignment='center', 
+                         transform=self.ax.transAxes, fontsize=14, color='gray')
             self.ax.set_xticks([])
             self.ax.set_yticks([])
             self.fig.tight_layout()
@@ -876,16 +849,18 @@ class App(ttk.Window):
         
         if df_exame.empty:
             self._setup_plot_area(single_plot=True)
-            self.ax.text(0.5, 0.5, f'Nenhum registro para o exame "{exame}" após a filtragem.', horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes, fontsize=14, color='gray')
+            self.ax.text(0.5, 0.5, f'Nenhum registro para o exame "{exame}" após a filtragem.', 
+                         horizontalalignment='center', verticalalignment='center', 
+                         transform=self.ax.transAxes, fontsize=14, color='gray')
             self.ax.set_xticks([])
             self.ax.set_yticks([])
             self.fig.tight_layout()
             self.canvas.draw()
             self.chart_title.config(text="Dados Insuficientes")
             return
-            
-        self.chart_title.config(text=f"Análise: {exame} - {aba}")
 
+        self.chart_title.config(text=f"Análise: {exame} - {aba}")
+        
         # Executa a plotagem de acordo com a aba (configura o layout antes de plotar)
         if aba in ["Análise Geral", "Por Idade", "Temporal", "Qualidade"]:
             # Configura para layout customizado ou single plot, dependendo da aba
@@ -901,16 +876,16 @@ class App(ttk.Window):
                 # Redefinir para garantir que o layout customizado da qualidade seja usado
                 self._setup_plot_area(single_plot=False)
                 self.plot_qualidade_metrics(df_exame, exame)
+                
+        elif aba == "Alterados": 
+            # USO DE PERSONALIZAÇÃO: A aba Alterados usará a segmentação Normal vs. Alterado, conforme solicitada pelo usuário.
+            self._setup_plot_area(single_plot=False) # Configura para multi-plot
+            self.plot_status_multi_bar(df_exame, exame)
 
-        elif aba == "Alterados":
-             # USO DE PERSONALIZAÇÃO: A aba Alterados usará a segmentação Normal vs. Alterado, conforme solicitada pelo usuário.
-             self._setup_plot_area(single_plot=False) # Configura para multi-plot
-             self.plot_status_multi_bar(df_exame, exame)
-             
         elif aba == "Por Sexo":
-             self._setup_plot_area(single_plot=False) # Configura para multi-plot
-             self.plot_dotplot_separado_sexo(df_exame, exame)
-             
+            self._setup_plot_area(single_plot=False) # Configura para multi-plot
+            self.plot_dotplot_separado_sexo(df_exame, exame)
+
         self.canvas.draw()
 
 
@@ -919,315 +894,406 @@ class App(ttk.Window):
         if self.df is None:
             self.show_message("Aviso", "Carregue o arquivo CSV primeiro.", type="warning")
             return
-            
         VRManager(self, self.exames_disponiveis, self.regras_vr)
 
     # --- Funções de Plotagem ---
-    
+
     def _limpar_grafico(self, ax, title):
         """Função auxiliar para limpar o eixo e definir o título."""
         ax.clear()
-        ax.set_title(title, fontsize=14, fontweight='bold', color='#333333', pad=15)
-        
-    def plot_status_multi_bar(self, df_exame, exame):
-        """
-        Plota um gráfico de barras comparando 'NORMAL' vs 'ALTO' e 'BAIXO' ('ALTERADO').
-        Exclui 'SEM VR' e 'N/A'.
-        """
-        df_plot = df_exame.copy()
-        
-        # Agrupa 'ALTO' e 'BAIXO' em 'ALTERADO'
-        df_plot['status_agrupado'] = df_plot['status_vr'].apply(
-            lambda x: 'NORMAL' if x == 'NORMAL' else ('ALTERADO' if x in ['ALTO', 'BAIXO'] else None)
-        )
-        
-        df_plot.dropna(subset=['status_agrupado'], inplace=True)
-        if df_plot.empty:
-            self._setup_plot_area(single_plot=True)
-            self._limpar_grafico(self.ax, f"Distribuição de Status VR para {exame}")
-            self.ax.text(0.5, 0.5, 'Dados insuficientes ou sem classificação VR para esta análise.', horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes, fontsize=12, color='gray')
-            return
+        ax.set_title(title, pad=15)
+        ax.tick_params(axis='x', rotation=0)
 
-        status_counts = df_plot['status_agrupado'].value_counts(normalize=True).sort_index() * 100
+    def _plot_grouped_bar_chart(self, ax, df_plot, x_col, y_col, hue_col, title, color_map, **kwargs):
+        """Plota um gráfico de barras agrupadas e adiciona rótulos."""
+        self._limpar_grafico(ax, title)
         
-        # Configurar para single plot (um único gráfico de barras)
-        self._setup_plot_area(single_plot=True)
-        self._limpar_grafico(self.ax, f"Distribuição de Status VR para {exame} (NORMAL vs ALTERADO)")
+        # Garante a ordem e as colunas (importante para 'Alterados')
+        if hue_col == 'status_vr':
+            categories = ['BAIXO', 'NORMAL', 'ALTO', 'SEM VR', 'N/A']
+            df_plot[hue_col] = pd.Categorical(df_plot[hue_col], categories=categories)
+            df_plot = df_plot.sort_values(hue_col)
+            
+        group_counts = df_plot.groupby([x_col, hue_col]).size().unstack(fill_value=0)
         
-        cores = {'NORMAL': '#28a745', 'ALTERADO': '#dc3545'} 
-        status_labels = status_counts.index.tolist()
-        status_values = status_counts.values
-        bar_colors = [cores.get(s, 'gray') for s in status_labels]
+        # Garante que as colunas 'BAIXO', 'NORMAL', 'ALTO' existam para plotagem na aba 'Alterados'
+        if hue_col == 'status_vr':
+            for cat in categories:
+                if cat not in group_counts.columns:
+                    group_counts[cat] = 0
 
-        bars = self.ax.bar(status_labels, status_values, color=bar_colors, width=0.5)
-        
-        self.ax.set_ylabel("Porcentagem (%)")
-        self.ax.set_xlabel("Status de Referência")
-        
-        # Adiciona rótulos de porcentagem nas barras
-        for bar in bars:
-            height = bar.get_height()
-            self.ax.text(bar.get_x() + bar.get_width() / 2., height + 1,
-                    f'{height:.1f}%',
-                    ha='center', va='bottom')
+        # Mapeamento para exibir apenas 'Normal' e 'Alterado' na aba 'Alterados'
+        if kwargs.get('show_normal_alterado'):
+             # Agrupa 'BAIXO' e 'ALTO' em 'Alterado' e filtra 'SEM VR' e 'N/A'
+             group_counts['Alterado'] = group_counts['BAIXO'] + group_counts['ALTO']
+             group_counts.rename(columns={'NORMAL': 'Normal'}, inplace=True)
+             
+             # Seleciona apenas as colunas desejadas e remove as categorias detalhadas
+             columns_to_show = ['Normal', 'Alterado']
+             group_counts = group_counts[[c for c in columns_to_show if c in group_counts.columns]]
 
-        self.ax.set_ylim(0, 100)
-        self.fig.tight_layout()
+             # Recria o color_map para as duas categorias
+             color_map = {'Normal': '#0077b6', 'Alterado': '#dc3545'} 
+        
+        
+        group_counts.plot(kind='bar', ax=ax, color=[color_map.get(col, 'gray') for col in group_counts.columns])
+        
+        ax.set_xlabel(x_col.capitalize())
+        ax.set_ylabel(y_col.capitalize() if y_col else "Contagem de Registros")
+        
+        # Adiciona os rótulos
+        for container in ax.containers:
+            for bar in container:
+                height = bar.get_height()
+                if height > 0:
+                    ax.annotate(f'{int(height)}',
+                                xy=(bar.get_x() + bar.get_width() / 2, height),
+                                xytext=(0, 3),  # 3 points vertical offset
+                                textcoords="offset points",
+                                ha='center', va='bottom', fontsize=8)
+        
+        ax.legend(title=hue_col.replace('_', ' ').title(), loc='upper right')
+        ax.tick_params(axis='x', rotation=0)
 
+        # Adiciona as cores da legenda ao title
+        handles, labels = ax.get_legend_handles_labels()
+        title_legend = ax.get_legend().get_title().get_text()
+        
+        # Remove a legenda duplicada do eixo principal
+        if kwargs.get('remove_legend', False):
+             ax.get_legend().remove()
+             
+        return handles, labels, title_legend
+
+    # --- Implementações de Plotagem ---
 
     def plot_dotplot_geral(self, df_exame, exame):
-        """Plota a distribuição geral dos resultados com VR e destaque de status."""
-        self._limpar_grafico(self.ax, f"Distribuição Geral dos Resultados: {exame}")
-        
-        df_plot = df_exame[df_exame['status_vr'].isin(['NORMAL', 'ALTO', 'BAIXO'])].copy()
-        if df_plot.empty:
-            self.ax.text(0.5, 0.5, 'Nenhum resultado com VR definido para plotagem.', horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes, fontsize=12, color='gray')
-            return
+        """Plota o dot plot geral dos resultados, sem segmentação."""
+        self._setup_plot_area(single_plot=True)
+        self._limpar_grafico(self.ax, f"Distribuição Geral dos Resultados de {exame}")
 
-        # Cores para cada status
-        color_map = {'NORMAL': '#28a745', 'BAIXO': '#dc3545', 'ALTO': '#dc3545'} 
-        
-        # Adiciona uma pequena dispersão aleatória para visualizar pontos sobrepostos (jitter)
-        x_jitter = np.random.normal(0, 0.05, size=len(df_plot)) 
+        self.ax.scatter(df_exame['resultado'], [1] * len(df_exame), alpha=0.6, color='#0077b6', s=50)
+        self.ax.set_yticks([]) 
+        self.ax.set_xlabel("Resultado")
+        self.ax.set_ylim(0.5, 1.5)
 
-        # Plota os pontos
-        scatter = self.ax.scatter(x_jitter, df_plot['resultado'], 
-                                  c=[color_map.get(s, 'gray') for s in df_plot['status_vr']], 
-                                  alpha=0.6, s=50, edgecolors='none')
+        # Adicionar tooltips
+        if mplcursors:
+            mplcursors.cursor(hover=True)
 
-        # Desenha a caixa de Valores de Referência se houver
-        if self.regras_vr:
-            regras_exame = [r for r in self.regras_vr if r['exame'] == exame]
-            if regras_exame:
-                 # Usa o menor limite inferior e o maior limite superior entre todas as regras
-                 ref_min_global = min(r['ref_min'] for r in regras_exame)
-                 ref_max_global = max(r['ref_max'] for r in regras_exame)
-
-                 # Linhas de referência
-                 self.ax.axhline(ref_min_global, color='#0077b6', linestyle='--', linewidth=1, label='VR Min')
-                 self.ax.axhline(ref_max_global, color='#0077b6', linestyle='--', linewidth=1, label='VR Max')
-
-                 # Área de referência (opcional, para visualização clara)
-                 # self.ax.axhspan(ref_min_global, ref_max_global, color='blue', alpha=0.1, label='Faixa VR')
-
-        self.ax.set_xticks([]) # Remove o eixo X numérico, mantendo o eixo Y de resultado
-        self.ax.set_ylabel("Resultado")
-        
-        # Cria a legenda manual para os status
-        handles = [
-            plt.Line2D([0], [0], marker='o', color='w', label='NORMAL', markerfacecolor=color_map['NORMAL'], markersize=10),
-            plt.Line2D([0], [0], marker='o', color='w', label='ALTERADO (Alto/Baixo)', markerfacecolor=color_map['ALTO'], markersize=10),
-        ]
-        
-        self.ax.legend(handles=handles, loc='upper right', title="Status VR")
         self.fig.tight_layout()
-
 
     def plot_dotplot_separado_sexo(self, df_exame, exame):
-        """Plota a distribuição dos resultados separados por sexo."""
+        """Plota o dot plot dos resultados segmentado por sexo, e a barra de status VR."""
+        df_plot = df_exame.dropna(subset=['sexo', 'resultado']).copy()
         
-        # Prepara a figura para 2 subplots (1 linha, 2 colunas)
-        self.fig.clear()
-        gs = gridspec.GridSpec(1, 2, figure=self.fig)
-        ax_m = self.fig.add_subplot(gs[0, 0])
-        ax_f = self.fig.add_subplot(gs[0, 1])
+        # 1. Configura os subplots
+        self._cleanup_plot_frame() # Limpa o layout anterior
+        gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1], hspace=0.3) 
+        ax1 = self.fig.add_subplot(gs[0]) # Dot Plot por Sexo
+        ax2 = self.fig.add_subplot(gs[1]) # Bar Chart de Status VR (Geral)
+        self.axes = {'ax1': ax1, 'ax2': ax2}
         
-        self.axes = {'MASCULINO': ax_m, 'FEMININO': ax_f}
+        # 2. Dot Plot por Sexo
+        self._limpar_grafico(ax1, f"Distribuição de Resultados por Sexo para {exame}")
         
-        df_plot = df_exame[df_exame['status_vr'].isin(['NORMAL', 'ALTO', 'BAIXO'])].copy()
-        df_m = df_plot[df_plot['sexo'] == 'MASCULINO']
-        df_f = df_plot[df_plot['sexo'] == 'FEMININO']
+        sexos = df_plot['sexo'].unique()
+        y_pos = {sexo: i + 1 for i, sexo in enumerate(sorted(sexos))}
+        y_labels = sorted(sexos)
 
-        # Cores para cada status
-        color_map = {'NORMAL': '#28a745', 'BAIXO': '#dc3545', 'ALTO': '#dc3545'}
+        color_map = {'MASCULINO': '#17a2b8', 'FEMININO': '#e83e8c', 'OUTRO': '#ffc107'}
         
-        max_y = df_plot['resultado'].max() * 1.1 if not df_plot.empty else 100
-        min_y = df_plot['resultado'].min() * 0.9 if not df_plot.empty else 0
+        for sexo, df_group in df_plot.groupby('sexo'):
+            if sexo in y_pos:
+                ax1.scatter(df_group['resultado'], [y_pos[sexo]] * len(df_group), 
+                            alpha=0.7, s=50, color=color_map.get(sexo, 'gray'), label=sexo)
 
-        # Regras de VR aplicáveis
-        regras_exame = [r for r in self.regras_vr if r['exame'] == exame]
+        ax1.set_yticks(list(y_pos.values()))
+        ax1.set_yticklabels(y_labels)
+        ax1.set_xlabel("Resultado")
+        ax1.set_ylabel("Sexo")
+
+        if mplcursors:
+            mplcursors.cursor(ax1, hover=True)
+            
+        # 3. Bar Chart de Status VR (Geral)
         
-        # Plot Masculino
-        self._limpar_grafico(ax_m, f"{exame} - MASCULINO")
-        if not df_m.empty:
-            x_jitter = np.random.normal(0, 0.05, size=len(df_m)) 
-            ax_m.scatter(x_jitter, df_m['resultado'], 
-                        c=[color_map.get(s, 'gray') for s in df_m['status_vr']], 
-                        alpha=0.6, s=50, edgecolors='none')
+        # Filtrar apenas as categorias que serão mostradas (ignora SEM VR e N/A se houver dados úteis)
+        status_counts = df_exame['status_vr'].value_counts()
         
-        # Adiciona linhas de VR para Masculino
-        regras_m = [r for r in regras_exame if r['sexo'] in ['MASCULINO', 'AMBOS']]
-        if regras_m:
-             ref_min_m = min(r['ref_min'] for r in regras_m)
-             ref_max_m = max(r['ref_max'] for r in regras_m)
-             ax_m.axhline(ref_min_m, color='#0077b6', linestyle='--', linewidth=1)
-             ax_m.axhline(ref_max_m, color='#0077b6', linestyle='--', linewidth=1)
+        # Preparação para plotagem: Renomear 'BAIXO' e 'ALTO' para 'Alterado'
+        plot_data = status_counts.drop(labels=['SEM VR', 'N/A'], errors='ignore')
+
+        normal_count = plot_data.get('NORMAL', 0)
+        baixo_count = plot_data.get('BAIXO', 0)
+        alto_count = plot_data.get('ALTO', 0)
+        alterado_count = baixo_count + alto_count
         
-        ax_m.set_xticks([])
-        ax_m.set_ylabel("Resultado")
-        ax_m.set_ylim(min_y, max_y)
-
-        # Plot Feminino
-        self._limpar_grafico(ax_f, f"{exame} - FEMININO")
-        if not df_f.empty:
-            x_jitter = np.random.normal(0, 0.05, size=len(df_f)) 
-            ax_f.scatter(x_jitter, df_f['resultado'], 
-                        c=[color_map.get(s, 'gray') for s in df_f['status_vr']], 
-                        alpha=0.6, s=50, edgecolors='none')
-
-        # Adiciona linhas de VR para Feminino
-        regras_f = [r for r in regras_exame if r['sexo'] in ['FEMININO', 'AMBOS']]
-        if regras_f:
-             ref_min_f = min(r['ref_min'] for r in regras_f)
-             ref_max_f = max(r['ref_max'] for r in regras_f)
-             ax_f.axhline(ref_min_f, color='#0077b6', linestyle='--', linewidth=1)
-             ax_f.axhline(ref_max_f, color='#0077b6', linestyle='--', linewidth=1)
-
-        ax_f.set_xticks([])
-        ax_f.set_ylabel("Resultado")
-        ax_f.set_ylim(min_y, max_y)
+        # DataFrame para plotagem Normal vs. Alterado
+        data_to_plot = pd.Series({'Normal': normal_count, 'Alterado': alterado_count})
         
-        # Cria a legenda manual para os status (apenas uma vez)
-        handles = [
-            plt.Line2D([0], [0], marker='o', color='w', label='NORMAL', markerfacecolor=color_map['NORMAL'], markersize=10),
-            plt.Line2D([0], [0], marker='o', color='w', label='ALTERADO (Alto/Baixo)', markerfacecolor=color_map['ALTO'], markersize=10),
-            plt.Line2D([0], [0], color='#0077b6', linestyle='--', linewidth=1, label='Faixa VR'),
-        ]
+        # Define as cores
+        bar_colors = {'Normal': '#0077b6', 'Alterado': '#dc3545'}
+        categories_to_plot = data_to_plot.index.tolist()
         
-        # Coloca a legenda fora dos subplots
-        self.fig.legend(handles=handles, loc='upper right', bbox_to_anchor=(1.0, 1.0))
+        self._limpar_grafico(ax2, f"Status Geral de VR: Normal vs. Alterado")
+        
+        bars = ax2.bar(categories_to_plot, data_to_plot.values, 
+                       color=[bar_colors[cat] for cat in categories_to_plot])
+                       
+        ax2.set_ylabel("Contagem")
+        ax2.set_xlabel("")
+        
+        # Adiciona rótulos de contagem
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                 ax2.annotate(f'{int(height)}',
+                              xy=(bar.get_x() + bar.get_width() / 2, height),
+                              xytext=(0, 3),  # 3 points vertical offset
+                              textcoords="offset points",
+                              ha='center', va='bottom', fontsize=9)
 
-        self.fig.tight_layout(rect=[0, 0, 0.9, 1]) # Ajusta para dar espaço à legenda
-
+        self.fig.tight_layout()
 
     def plot_histograma_idade(self, df_exame, exame):
-        """Plota o histograma da distribuição de idade com destaque para resultados alterados."""
-        self._limpar_grafico(self.ax, f"Distribuição de Idade por Status VR para {exame}")
-
-        df_plot = df_exame[df_exame['status_vr'].isin(['NORMAL', 'ALTO', 'BAIXO'])].copy()
+        """Plota o histograma da idade e o dot plot segmentado por idade em 5 grupos."""
+        df_plot = df_exame.dropna(subset=['idade', 'resultado']).copy()
         
-        if df_plot.empty:
-            self.ax.text(0.5, 0.5, 'Nenhum resultado com VR definido para plotagem.', horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes, fontsize=12, color='gray')
-            return
-
-        # Agrupa 'ALTO' e 'BAIXO' em 'ALTERADO' para a legenda
-        df_plot['status_plot'] = df_plot['status_vr'].apply(
-            lambda x: 'NORMAL' if x == 'NORMAL' else 'ALTERADO'
-        )
+        # 1. Configura os subplots
+        self._cleanup_plot_frame()
+        gs = gridspec.GridSpec(2, 1, height_ratios=[1, 2], hspace=0.4) 
+        ax1 = self.fig.add_subplot(gs[0]) # Histograma
+        ax2 = self.fig.add_subplot(gs[1]) # Dot Plot por Faixa Etária
+        self.axes = {'ax1': ax1, 'ax2': ax2}
         
-        ages_normal = df_plot[df_plot['status_plot'] == 'NORMAL']['idade'].dropna().values
-        ages_alterado = df_plot[df_plot['status_plot'] == 'ALTERADO']['idade'].dropna().values
+        # 2. Histograma de Idade
+        self._limpar_grafico(ax1, f"Distribuição de Idade para {exame}")
         
-        # Define os bins
-        max_age = int(df_plot['idade'].max()) if not df_plot['idade'].empty else 1
-        bins = np.arange(0, max_age + 5, 5) if max_age > 10 else 5
+        # Calcula bins (sqrt(N) ou 20, o que for menor)
+        n_bins = int(np.sqrt(len(df_plot))) if len(df_plot) > 0 else 10
+        n_bins = min(n_bins, 20)
+        
+        if n_bins < 5: n_bins = 5 # Mínimo de 5 bins
+        
+        # Plota o histograma
+        n, bins, patches = ax1.hist(df_plot['idade'], bins=n_bins, edgecolor='black', color='#17a2b8', alpha=0.7)
+        ax1.set_xlabel("Idade (anos)")
+        ax1.set_ylabel("Frequência")
+        
+        # 3. Dot Plot por Faixa Etária (5 grupos)
+        self._limpar_grafico(ax2, f"Resultados por Faixa Etária para {exame}")
+        
+        # Cria as faixas etárias
+        num_groups = 5
+        min_age = df_plot['idade'].min()
+        max_age = df_plot['idade'].max()
+        
+        # Define os rótulos de forma mais inteligível
+        if max_age <= 1: # Menos de 1 ano
+            bins_age = np.linspace(min_age, max_age, num_groups + 1)
+            labels = [f"{round(bins_age[i]*12)}-{round(bins_age[i+1]*12)}m" for i in range(num_groups)]
+        elif max_age <= 5: # Até 5 anos
+            bins_age = np.linspace(min_age, max_age, num_groups + 1)
+            labels = [f"{round(bins_age[i], 1)}-{round(bins_age[i+1], 1)}a" for i in range(num_groups)]
+        else: # Acima de 5 anos
+            bins_age = np.linspace(min_age, max_age, num_groups + 1)
+            labels = [f"{int(bins_age[i])}-{int(bins_age[i+1])}a" for i in range(num_groups)]
 
-        # Plota os histogramas (um empilhado sobre o outro)
-        self.ax.hist([ages_normal, ages_alterado], bins=bins, stacked=True, 
-                     color=['#28a745', '#dc3545'], 
-                     label=['NORMAL', 'ALTERADO'], edgecolor='black')
 
-        self.ax.set_xlabel("Idade (anos)")
-        self.ax.set_ylabel("Frequência")
-        self.ax.legend(title="Status VR")
+        df_plot['faixa_etaria'] = pd.cut(df_plot['idade'], bins=bins_age, labels=labels, include_lowest=True, right=True)
+        
+        # Remove grupos com 0 amostras para não plotar
+        df_plot = df_plot.dropna(subset=['faixa_etaria'])
+        faixas = df_plot['faixa_etaria'].cat.categories.tolist()
+        
+        y_pos = {faixa: i + 1 for i, faixa in enumerate(faixas)}
+        
+        for faixa, df_group in df_plot.groupby('faixa_etaria'):
+            if faixa in y_pos:
+                 ax2.scatter(df_group['resultado'], [y_pos[faixa]] * len(df_group), 
+                             alpha=0.7, s=50, color='#0077b6')
+
+        ax2.set_yticks(list(y_pos.values()))
+        ax2.set_yticklabels(faixas)
+        ax2.set_xlabel("Resultado")
+        ax2.set_ylabel("Faixa Etária")
+        
+        if mplcursors:
+            mplcursors.cursor(ax2, hover=True)
+            
         self.fig.tight_layout()
-
 
     def plot_tendencia_temporal(self, df_exame, exame):
-        """Plota a tendência temporal dos resultados com uma média móvel."""
-        self._limpar_grafico(self.ax, f"Tendência Temporal dos Resultados: {exame}")
-
-        df_plot = df_exame.copy()
-        df_plot.dropna(subset=['data', 'resultado'], inplace=True)
-
+        """Plota a série temporal da média móvel dos resultados."""
+        
+        df_plot = df_exame.dropna(subset=['data', 'resultado']).copy()
+        
         if df_plot.empty:
-            self.ax.text(0.5, 0.5, 'Nenhum dado temporal disponível para plotagem.', horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes, fontsize=12, color='gray')
+            self._setup_plot_area(single_plot=True)
+            self.ax.text(0.5, 0.5, 'Nenhum dado temporal após a filtragem.', 
+                         horizontalalignment='center', verticalalignment='center', 
+                         transform=self.ax.transAxes, fontsize=14, color='gray')
+            self.ax.set_xticks([])
+            self.ax.set_yticks([])
+            self.fig.tight_layout()
             return
             
-        df_plot.sort_values('data', inplace=True)
+        self._setup_plot_area(single_plot=True)
+        self._limpar_grafico(self.ax, f"Tendência Temporal dos Resultados (Média Móvel 30 dias) - {exame}")
 
-        # Plota resultados individuais
-        self.ax.plot(df_plot['data'], df_plot['resultado'], 
-                     marker='o', linestyle='', alpha=0.4, label='Resultados Individuais', color='#0077b6')
+        df_plot['data'] = pd.to_datetime(df_plot['data'])
+        df_plot.set_index('data', inplace=True)
 
-        # Calcula e plota a média móvel (rolling mean) - janela de 30 dias
-        df_plot['data_dt'] = pd.to_datetime(df_plot['data'])
-        df_plot.set_index('data_dt', inplace=True)
+        # Agrupa por dia e calcula a média para preencher datas faltantes na série
+        df_serie = df_plot['resultado'].resample('D').mean().fillna(method='ffill') 
         
-        # Calcula a média móvel da 'resultado' usando uma janela de 30 dias
-        rolling_mean = df_plot['resultado'].rolling(window='30D').mean()
+        # Média Móvel de 30 dias para suavizar a curva
+        window_size = 30
+        df_media_movel = df_serie.rolling(window=window_size).mean().dropna()
+
+        self.ax.plot(df_media_movel.index, df_media_movel.values, label=f'Média Móvel {window_size} dias', color='#0077b6', linewidth=2)
         
-        self.ax.plot(rolling_mean.index.to_numpy(), rolling_mean.values, 
-                     linestyle='-', color='#dc3545', linewidth=2, label='Média Móvel (30 dias)')
-
-        # Configuração do eixo X (Datas)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
-        self.ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-        self.fig.autofmt_xdate()
-
         self.ax.set_xlabel("Data")
-        self.ax.set_ylabel("Resultado")
-        self.ax.legend(loc='upper left')
+        self.ax.set_ylabel("Resultado (Média Móvel)")
+
+        # Formatação do eixo X
+        formatter = mdates.DateFormatter('%d/%m/%Y')
+        self.ax.xaxis.set_major_formatter(formatter)
+        self.ax.tick_params(axis='x', rotation=45)
+        
+        self.ax.grid(True, linestyle='--', alpha=0.6)
+        
         self.fig.tight_layout()
 
+    def plot_status_multi_bar(self, df_exame, exame):
+        """Plota os resultados de Normal vs. Alterado (Baixo/Alto) segmentados por Sexo e Idade."""
+        df_plot = df_exame.dropna(subset=['status_vr']).copy()
+        
+        # Configuração para 2 gráficos de barras (3:2)
+        self._cleanup_plot_frame()
+        gs = gridspec.GridSpec(1, 2, width_ratios=[3, 2], wspace=0.3) 
+        ax1 = self.fig.add_subplot(gs[0]) # Por Idade
+        ax2 = self.fig.add_subplot(gs[1]) # Por Sexo
+        self.axes = {'ax1': ax1, 'ax2': ax2}
+        
+        # Define o mapeamento de cores (Normal/Alterado)
+        color_map = {
+             'NORMAL': '#0077b6', 
+             'BAIXO': '#dc3545', 
+             'ALTO': '#dc3545', 
+             'SEM VR': 'gray', 
+             'N/A': 'lightgray'
+        }
+        
+        # --- 1. Gráfico de Barras Agrupadas: POR FAIXA ETÁRIA (2 Grupos: 0-18 e >18) ---
+        
+        df_idade = df_plot.dropna(subset=['idade']).copy()
+        df_idade['faixa_idade'] = np.where(df_idade['idade'] <= 18, '0-18 anos', '> 18 anos')
+
+        # 'show_normal_alterado': True ativa o agrupamento de BAIXO/ALTO em 'Alterado' e renomeia 'NORMAL' para 'Normal'
+        h1, l1, t1 = self._plot_grouped_bar_chart(
+             ax1, df_idade, x_col='faixa_idade', y_col='Contagem', 
+             hue_col='status_vr', 
+             title=f"Status VR por Faixa Etária ({exame})",
+             color_map=color_map, 
+             show_normal_alterado=True,
+             remove_legend=True # Remove a legenda do eixo para evitar duplicidade
+        )
+        
+        # --- 2. Gráfico de Barras Agrupadas: POR SEXO ---
+        
+        df_sexo = df_plot.dropna(subset=['sexo']).copy()
+
+        # 'show_normal_alterado': True ativa o agrupamento de BAIXO/ALTO em 'Alterado'
+        h2, l2, t2 = self._plot_grouped_bar_chart(
+             ax2, df_sexo, x_col='sexo', y_col='Contagem', 
+             hue_col='status_vr', 
+             title=f"Status VR por Sexo ({exame})",
+             color_map=color_map,
+             show_normal_alterado=True,
+             remove_legend=True # Remove a legenda do eixo para evitar duplicidade
+        )
+        
+        # Centraliza a legenda combinada na parte inferior
+        self.fig.legend(handles=h1, labels=l1, loc='lower center', ncol=len(l1), title="Status de Valor de Referência")
+        
+        self.fig.tight_layout(rect=[0, 0.05, 1, 1]) # Ajusta para dar espaço à legenda
 
     def plot_qualidade_metrics(self, df_exame, exame):
         """
-        Plota métricas de qualidade em um layout de 2x2:
-        1. Histograma de Frequência (VR Status)
-        2. Tabela de Estatísticas Descritivas
-        3. Histograma de Frequência (Sexo)
+        Plota as métricas de Qualidade (CV e Desvio Padrão) e a Tabela de Estatísticas 
+        descritivas em um layout de 2x1.
         """
         
-        # Prepara a figura para 2 subplots (2 linhas, 2 colunas)
-        self.fig.clear()
-        gs = gridspec.GridSpec(2, 2, figure=self.fig, hspace=0.4, wspace=0.3)
-        ax_status = self.fig.add_subplot(gs[0, 0])
-        ax_stats = self.fig.add_subplot(gs[0, 1])
-        ax_sexo = self.fig.add_subplot(gs[1, 0])
-        ax_empty = self.fig.add_subplot(gs[1, 1])
+        df_plot = df_exame.dropna(subset=['resultado']).copy()
         
-        self.axes = {'status': ax_status, 'stats': ax_stats, 'sexo': ax_sexo, 'empty': ax_empty}
+        # 1. Configura os subplots
+        self._cleanup_plot_frame()
+        # Gráfico de CV/DP (1/3) e Tabela (2/3)
+        gs = gridspec.GridSpec(2, 1, height_ratios=[1, 2], hspace=0.3) 
+        ax_stats = self.fig.add_subplot(gs[0]) # Estatísticas/Tabela
+        ax_table = self.fig.add_subplot(gs[1]) # Tabela
+        self.axes = {'ax_stats': ax_stats, 'ax_table': ax_table}
         
-        # 1. Histograma de Frequência (VR Status)
-        self._limpar_grafico(ax_status, "Distribuição de Status VR")
-        status_counts = df_exame['status_vr'].value_counts()
+        # O ax_table será usado para desenhar o Matplotlib Table
+        ax_table.axis('off')
         
-        status_colors = {'NORMAL': '#28a745', 'BAIXO': '#dc3545', 'ALTO': '#dc3545', 'SEM VR': 'lightgray', 'N/A': 'darkgray'}
-        bar_colors = [status_colors.get(s, 'gray') for s in status_counts.index]
+        # --- 1. Estatísticas Chave (DP e CV) ---
+        self._limpar_grafico(ax_stats, f"Métricas de Qualidade: Desvio Padrão e CV - {exame}")
+
+        mean = df_plot['resultado'].mean()
+        std = df_plot['resultado'].std()
+        cv = (std / mean) * 100 if mean != 0 else 0
         
-        ax_status.bar(status_counts.index, status_counts.values, color=bar_colors)
-        ax_status.set_ylabel("Frequência")
-        ax_status.tick_params(axis='x', rotation=30)
+        metrics = {'Desvio Padrão': std, 'Coef. Variação (%)': cv}
+        metric_names = list(metrics.keys())
+        metric_values = list(metrics.values())
+
+        bars = ax_stats.bar(metric_names, metric_values, color=['#0077b6', '#dc3545'], alpha=0.8)
         
+        ax_stats.set_ylabel("Valor")
         
-        # 2. Tabela de Estatísticas Descritivas
-        self._limpar_grafico(ax_stats, "Estatísticas Descritivas")
-        ax_stats.axis('off')
+        # Adiciona rótulos de contagem
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                 ax_stats.annotate(f'{height:.2f}',
+                              xy=(bar.get_x() + bar.get_width() / 2, height),
+                              xytext=(0, 3),  # 3 points vertical offset
+                              textcoords="offset points",
+                              ha='center', va='bottom', fontsize=10, weight='bold')
+
+        ax_stats.tick_params(axis='x', rotation=0)
         
-        df_desc = df_exame['resultado'].describe().reset_index()
-        df_desc.columns = ['Métrica', 'Valor']
+        # --- 2. Tabela de Estatísticas Descritivas ---
+
+        desc_stats = df_plot['resultado'].describe().to_frame().reset_index()
+        desc_stats.columns = ['Métrica', 'Valor']
         
-        # Adiciona Coeficiente de Variação (CV)
-        if df_desc.loc[df_desc['Métrica'] == 'mean', 'Valor'].iloc[0] != 0:
-            cv = (df_desc.loc[df_desc['Métrica'] == 'std', 'Valor'].iloc[0] / df_desc.loc[df_desc['Métrica'] == 'mean', 'Valor'].iloc[0]) * 100
-            cv_row = pd.DataFrame([['cv', cv]], columns=['Métrica', 'Valor'])
-            df_table = pd.concat([df_desc, cv_row], ignore_index=True)
-        else:
-            df_table = df_desc
+        # Adiciona o CV na tabela descritiva (para não aparecer duplicado no gráfico)
+        cv_row = pd.DataFrame([{'Métrica': 'cv', 'Valor': cv}])
+        
+        df_table = pd.concat([desc_stats, cv_row], ignore_index=True)
         
         df_table.rename(columns={'Métrica': 'Estatística'}, inplace=True)
         
         # Mapeamento para nomes em português
         pt_names = {
             'count': 'N Amostras', 'mean': 'Média (x̄)', 'std': 'Desvio Padrão', 
-            'min': 'Mínimo', '25%': 'Q1', '50%': 'Mediana (Q2)', '75%': 'Q3', 'max': 'Máximo', 'cv': 'CV (%)'
+            'min': 'Mínimo', '25%': 'Q1', '50%': 'Mediana (Q2)', '75%': 'Q3', 'max': 'Máximo',
+            'cv': 'Coef. Variação (%)'
         }
         df_table['Estatística'] = df_table['Estatística'].replace(pt_names)
-        df_table['Valor'] = df_table['Valor'].apply(lambda x: f"{x:.2f}")
-
+        
+        # Formata os valores numéricos (exceto N Amostras)
+        df_table['Valor'] = df_table.apply(
+            lambda row: f"{row['Valor']:.2f}" if row['Estatística'] != 'N Amostras' else int(row['Valor']), 
+            axis=1
+        )
+        
         # Desenha a tabela usando o Matplotlib Table
-        table = ax_stats.table(cellText=df_table.values, 
+        table = ax_table.table(cellText=df_table.values, 
                                colLabels=df_table.columns, 
                                loc='center', 
                                cellLoc='center',
@@ -1242,23 +1308,15 @@ class App(ttk.Window):
         for (i, j), cell in table.get_celld().items():
             if i == 0:
                 cell.set_text_props(weight='bold', color='white')
-                cell.set_facecolor('#0077b6')
-            cell.set_edgecolor('lightgray')
-        
-        # 3. Histograma de Frequência (Sexo)
-        self._limpar_grafico(ax_sexo, "Distribuição de Sexo")
-        sex_counts = df_exame['sexo'].value_counts()
-        sex_colors = {'MASCULINO': '#17a2b8', 'FEMININO': '#e83e8c'} 
-        bar_colors_sex = [sex_colors.get(s, 'gray') for s in sex_counts.index]
-        
-        ax_sexo.bar(sex_counts.index, sex_counts.values, color=bar_colors_sex)
-        ax_sexo.set_ylabel("Frequência")
-        ax_sexo.tick_params(axis='x', rotation=30)
-        
-        # 4. Eixo Vazio (Texto informativo)
-        self._limpar_grafico(ax_empty, "Informação")
-        ax_empty.axis('off')
-        ax_empty.text(0.5, 0.7, f'Exame: {exame}', ha='center', va='center', fontsize=12, color='#333333')
-        ax_empty.text(0.5, 0.4, 'O Coeficiente de Variação (CV)\nindica a precisão do resultado.', ha='center', va='center', fontsize=10, color='gray')
-        
+                cell.set_facecolor('#0077b6') 
+            elif df_table.iloc[i-1]['Estatística'] == 'Coef. Variação (%)':
+                 cell.set_facecolor('#f8d7da') # Cor de destaque para o CV
+                 cell.set_text_props(weight='bold', color='#721c24')
+
+
         self.fig.tight_layout()
+
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
