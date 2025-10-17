@@ -362,7 +362,13 @@ class App(ttk.Window):
         self.canvas = None
         self.canvas_widget = None
 
+        self.loading_modal = None
+        self.loading_progress = None
+
         self.setup_dashboard_layout()
+
+        self.withdraw()
+        self.after(100, self._show_loading_modal)
 
     def show_message(self, title, message, type="info"):
         """Exibe uma messagebox customizada."""
@@ -442,20 +448,22 @@ class App(ttk.Window):
         # -----------------------------------------------------
         # 1. Header 
         # -----------------------------------------------------
-        header_frame = ttk.Frame(main_dashboard_frame, padding="15 10", bootstyle=LIGHT)
+        header_frame = ttk.Frame(main_dashboard_frame, padding="15 20")
         header_frame.pack(fill=X, pady=(0, 20))
-        
-        ttk.Label(header_frame, text="Sistema de Análise Estatística", font=("Helvetica Neue", 22, "bold"), bootstyle=PRIMARY).pack(side=LEFT)
-        
+        header_frame.columnconfigure(0, weight=1)
+
+        ttk.Label(header_frame, text="Metrion", font=("Helvetica Neue", 28, "bold"), bootstyle=PRIMARY).grid(row=0, column=0, pady=(0, 5))
+        ttk.Label(header_frame, text="Sistema de Análise estatística", font=("Helvetica Neue", 14), bootstyle=SECONDARY).grid(row=1, column=0)
+
         action_frame = ttk.Frame(header_frame)
-        action_frame.pack(side=RIGHT)
+        action_frame.grid(row=0, column=1, rowspan=2, sticky=E)
         
         # REMOVIDO: ttk.Button(action_frame, text="Iniciar Análise", command=self.analisar_dados, bootstyle=SUCCESS).pack(side=RIGHT, padx=5)
         ttk.Button(action_frame, text="Gerenciar Valores de Referência (VR)", command=self.abrir_manager_vr, bootstyle=INFO).pack(side=RIGHT, padx=5)
-        
+
 
         # -----------------------------------------------------
-        # 2. Upload e Status do Arquivo 
+        # 2. Upload e Status do Arquivo
         # -----------------------------------------------------
         upload_frame = ttk.Frame(main_dashboard_frame, padding="10", bootstyle=LIGHT, style='Upload.TFrame')
         upload_frame.pack(fill=X, pady=(0, 20))
@@ -565,9 +573,48 @@ class App(ttk.Window):
         # Frame para hospedar o gráfico
         self.plot_frame = ttk.Frame(self.chart_container)
         self.plot_frame.pack(fill=BOTH, expand=True)
-        
+
         # Setup inicial do layout (single plot)
         self._setup_plot_area(single_plot=True)
+
+    def _show_loading_modal(self):
+        self.loading_modal = tk.Toplevel(self)
+        self.loading_modal.title("Carregando")
+        self.loading_modal.transient(self)
+        self.loading_modal.grab_set()
+        self.loading_modal.resizable(False, False)
+
+        width, height = 320, 160
+        x = (self.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.loading_modal.geometry(f"{width}x{height}+{x}+{y}")
+
+        container = ttk.Frame(self.loading_modal, padding="20 20")
+        container.pack(fill=BOTH, expand=True)
+
+        ttk.Label(container, text="Metrion", font=("Helvetica Neue", 24, "bold"), bootstyle=PRIMARY).pack(pady=(0, 15))
+
+        self.loading_progress = ttk.Progressbar(container, mode="determinate", maximum=100, bootstyle=PRIMARY)
+        self.loading_progress.pack(fill=X)
+
+        self.after(80, self._animate_loading, 0)
+
+    def _animate_loading(self, value):
+        if not self.loading_modal:
+            return
+
+        if value > 100:
+            self.loading_modal.grab_release()
+            self.loading_modal.destroy()
+            self.loading_modal = None
+            self.loading_progress = None
+            self.deiconify()
+            self.focus_force()
+            return
+
+        self.loading_progress['value'] = value
+        self.loading_modal.update_idletasks()
+        self.after(80, self._animate_loading, value + 20)
 
     def _setup_plot_area(self, single_plot=True):
         """
